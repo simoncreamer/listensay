@@ -1,1 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drag and Drop Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: lightgrey;
+            color: black;
+            text-align: center;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 50px;
+            background-color: lightgrey;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        .images-row, .words-row {
+            display: flex;
+            justify-content: center;
+        }
+        .image-container {
+            text-align: center;
+            margin: 0 20px;
+        }
+        .draggable {
+            margin: 10px;
+            padding: 10px;
+            border: 2px solid #000;
+            cursor: move;
+            background-color: white;
+            font-size: 24px;
+            width: 200px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .dropzone {
+            border: 2px dashed #ccc;
+            padding: 10px;
+            background-color: white;
+            width: 200px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.3s;
+        }
+        .dropzone.highlight {
+            background-color: lightblue;
+        }
+        .correct {
+            border-color: green;
+        }
+        .incorrect {
+            border-color: red;
+        }
+        .feedback {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .buttons-container {
+            display: flex;
+            flex-direction: column;
+            margin-left: 40px;
+        }
+        .buttons-container button {
+            margin: 10px;
+            padding: 30px 60px;
+            font-size: 24px;
+            background-color: white;
+            border: 2px solid black;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Drag and Drop Game</h1>
+    <div class="container">
+        <div class="game-container">
+            <div class="images-row">
+                <div class="image-container">
+                    <img src="https://www.weebly.com/uploads/5/8/6/1/5861584/pat.png" alt="pat" width="200" height="180">
+                    <div class="dropzone" data-answer="pat"></div>
+                    <div class="feedback" id="pat-feedback"></div>
+                </div>
+                <div class="image-container">
+                    <img src="https://www.weebly.com/uploads/5/8/6/1/5861584/sat-sit.png" alt="sat" width="200" height="180">
+                    <div class="dropzone" data-answer="sat"></div>
+                    <div class="feedback" id="sat-feedback"></div>
+                </div>
+                <div class="image-container">
+                    <img src="https://www.weebly.com/uploads/5/8/6/1/5861584/tap.png" alt="tap" width="200" height="180">
+                    <div class="dropzone" data-answer="tap"></div>
+                    <div class="feedback" id="tap-feedback"></div>
+                </div>
+            </div>
+            <div class="words-row" id="words-row">
+                <div class="draggable" draggable="true" id="pat">pat</div>
+                <div class="draggable" draggable="true" id="sat">sat</div>
+                <div class="draggable" draggable="true" id="tap">tap</div>
+            </div>
+        </div>
+        <div class="buttons-container">
+            <button onclick="checkAnswers()">Check</button>
+            <button onclick="retry()">Retry</button>
+        </div>
+    </div>
+    <script>
+        const draggables = document.querySelectorAll('.draggable');
+        const dropzones = document.querySelectorAll('.dropzone');
+        const wordsRow = document.getElementById('words-row');
 
+        function shuffleElements(parent) {
+            const children = Array.from(parent.children);
+            children.sort(() => Math.random() - 0.5);
+            children.forEach(child => parent.appendChild(child));
+        }
+        shuffleElements(wordsRow);
+
+        draggables.forEach(draggable => {
+            draggable.addEventListener('dragstart', () => draggable.classList.add('dragging'));
+            draggable.addEventListener('dragend', () => draggable.classList.remove('dragging'));
+        });
+
+        dropzones.forEach(dropzone => {
+            dropzone.addEventListener('dragover', e => e.preventDefault());
+            dropzone.addEventListener('dragenter', () => dropzone.classList.add('highlight'));
+            dropzone.addEventListener('dragleave', () => dropzone.classList.remove('highlight'));
+            dropzone.addEventListener('drop', e => {
+                e.preventDefault();
+                const dragging = document.querySelector('.dragging');
+                if (dragging && !dropzone.querySelector('.draggable')) {
+                    dropzone.appendChild(dragging);
+                    dropzone.classList.remove('highlight');
+                }
+            });
+        });
+
+        function checkAnswers() {
+            dropzones.forEach(dropzone => {
+                const word = dropzone.querySelector('.draggable');
+                const feedback = document.getElementById(`${dropzone.dataset.answer}-feedback`);
+                if (word && word.id === dropzone.dataset.answer) {
+                    dropzone.classList.add('correct');
+                    dropzone.classList.remove('incorrect');
+                    feedback.textContent = "Correct!";
+                    feedback.style.color = "green";
+                } else {
+                    dropzone.classList.add('incorrect');
+                    dropzone.classList.remove('correct');
+                    feedback.textContent = "Incorrect!";
+                    feedback.style.color = "red";
+                }
+            });
+        }
+
+        function retry() {
+            dropzones.forEach(dropzone => {
+                const word = dropzone.querySelector('.draggable');
+                if (word) {
+                    wordsRow.appendChild(word);
+                }
+                dropzone.classList.remove('correct', 'incorrect');
+                document.getElementById(`${dropzone.dataset.answer}-feedback`).textContent = "";
+            });
+            shuffleElements(wordsRow);
+        }
+    </script>
+</body>
+</html>
